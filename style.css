@@ -55,6 +55,17 @@ button {
   backdrop-filter: blur(10px);
 }
 
+.weight-card::before {
+  content: "";
+  display: block;
+  width: 52px;
+  height: 5px;
+  margin: 0 auto 18px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--blue), var(--violet), var(--cream));
+  opacity: 0.8;
+}
+
 .hero {
   text-align: center;
 }
@@ -116,6 +127,7 @@ h1 {
   border-radius: 24px;
   background:
     radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.62), transparent 42%),
+    radial-gradient(circle at 20% 80%, rgba(217, 210, 255, 0.2), transparent 30%),
     linear-gradient(180deg, rgba(234, 249, 255, 0.64), rgba(255, 243, 220, 0.54));
 }
 
@@ -149,6 +161,18 @@ h1 {
   animation: cloudBounce 620ms cubic-bezier(0.2, 1.22, 0.3, 1);
 }
 
+.cloud-wrap.is-rubbing .cloud-svg {
+  animation: cloudRub 560ms ease;
+}
+
+.cloud-wrap.is-blowing .cloud-svg {
+  animation: cloudBlow 660ms ease;
+}
+
+.cloud-wrap.is-pretending .cloud-svg {
+  animation: cloudPretend 620ms ease;
+}
+
 .cloud-shadow {
   position: absolute;
   left: 21%;
@@ -174,22 +198,33 @@ h1 {
 .cloud-shape {
   fill: url("#cloudGradient");
   stroke: rgba(45, 41, 48, 0.84);
-  stroke-width: 7;
+  stroke-width: 6.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .cloud-soft-line,
+.cloud-highlight,
 .cloud-face path {
   fill: none;
   stroke: rgba(45, 41, 48, 0.82);
-  stroke-width: 6;
+  stroke-width: 5.4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
+.cloud-soft-line,
+.cloud-highlight {
+  opacity: 0.35;
+  stroke-width: 4.6;
+}
+
 .cheek {
   fill: rgba(244, 170, 147, 0.32);
+}
+
+.dot-eye {
+  fill: rgba(45, 41, 48, 0.82);
 }
 
 .cloud-label {
@@ -199,16 +234,26 @@ h1 {
   letter-spacing: 0;
 }
 
+.face,
+.eyes-open,
 .eyes-blink {
   opacity: 0;
 }
 
-.cloud-wrap.is-blinking .eyes-open {
-  opacity: 0;
+.cloud-wrap.expression-calm .face-calm,
+.cloud-wrap.expression-smile .face-smile,
+.cloud-wrap.expression-relief .face-relief,
+.cloud-wrap.expression-dizzy .face-dizzy,
+.cloud-wrap.expression-light .face-light {
+  opacity: 1;
 }
 
 .cloud-wrap.is-blinking .eyes-blink {
   opacity: 1;
+}
+
+.cloud-wrap.is-blinking .face {
+  opacity: 0;
 }
 
 .final-star {
@@ -284,6 +329,24 @@ h1 {
   gap: 10px;
 }
 
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 14px 0 0;
+}
+
+.stat-pill {
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid rgba(116, 109, 120, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.52);
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.84rem;
+}
+
 .control-button {
   flex: 1 1 126px;
   min-height: 45px;
@@ -348,6 +411,48 @@ h1 {
   }
 }
 
+@keyframes cloudRub {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0) scale(1);
+  }
+  24% {
+    transform: translateX(-7px) rotate(-2deg) scale(1.04, 0.96);
+  }
+  48% {
+    transform: translateX(7px) rotate(2deg) scale(0.98, 1.03);
+  }
+  72% {
+    transform: translateX(-3px) rotate(-1deg);
+  }
+}
+
+@keyframes cloudBlow {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0) rotate(0);
+  }
+  36% {
+    transform: translateX(16px) translateY(-7px) rotate(3deg);
+  }
+  70% {
+    transform: translateX(-3px) translateY(-3px) rotate(-1deg);
+  }
+}
+
+@keyframes cloudPretend {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  32% {
+    transform: translateY(5px) scale(1.03, 0.96);
+  }
+  64% {
+    transform: translateY(-4px) scale(0.98, 1.02);
+  }
+}
+
 @keyframes particleFloat {
   0% {
     opacity: 0;
@@ -387,6 +492,10 @@ h1 {
 
   .control-button {
     flex-basis: calc(50% - 8px);
+  }
+
+  .mini-stats {
+    grid-template-columns: 1fr;
   }
 }
 

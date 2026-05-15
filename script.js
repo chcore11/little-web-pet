@@ -4,6 +4,9 @@ const particleLayer = document.querySelector("#particleLayer");
 const progressText = document.querySelector("#progressText");
 const progressFill = document.querySelector("#progressFill");
 const controls = document.querySelector("#controls");
+const softnessStat = document.querySelector("#softnessStat");
+const floatStat = document.querySelector("#floatStat");
+const trustStat = document.querySelector("#trustStat");
 
 const actionTexts = [
   "已处理 3% 的烦人东西。",
@@ -34,7 +37,8 @@ const state = {
   busy: false,
   done: false,
   blinkTimer: 0,
-  bounceTimer: 0
+  bounceTimer: 0,
+  lastAction: "lighten"
 };
 
 function randomItem(list) {
@@ -62,6 +66,14 @@ function updateCloud() {
   cloudWrap.style.setProperty("--cloud-brightness", brightness.toFixed(3));
   progressText.textContent = `已减轻 ${Math.round(state.progress)}%`;
   progressFill.style.width = `${state.progress}%`;
+  softnessStat.textContent = `软度 ${ratio > 0.66 ? "高" : ratio > 0.32 ? "中" : "低"}`;
+  floatStat.textContent = `漂浮 ${Math.round(lift / 3)}cm`;
+  trustStat.textContent = `可信度 ${state.progress > 70 ? "仍不详" : "不详"}`;
+}
+
+function setExpression(name) {
+  cloudWrap.classList.remove("expression-calm", "expression-smile", "expression-relief", "expression-dizzy", "expression-light");
+  cloudWrap.classList.add(name);
 }
 
 function spawnParticles(amount = 6) {
@@ -94,12 +106,18 @@ function spawnParticles(amount = 6) {
   }
 }
 
-function bounceCloud() {
+function animateCloud(action) {
   window.clearTimeout(state.bounceTimer);
-  cloudWrap.classList.remove("is-bouncing");
+  cloudWrap.classList.remove("is-bouncing", "is-rubbing", "is-blowing", "is-pretending");
   void cloudWrap.offsetWidth;
-  cloudWrap.classList.add("is-bouncing");
-  state.bounceTimer = window.setTimeout(() => cloudWrap.classList.remove("is-bouncing"), 640);
+  const className = {
+    rub: "is-rubbing",
+    blow: "is-blowing",
+    pretend: "is-pretending",
+    lighten: "is-bouncing"
+  }[action] || "is-bouncing";
+  cloudWrap.classList.add(className);
+  state.bounceTimer = window.setTimeout(() => cloudWrap.classList.remove(className), 680);
 }
 
 function finish() {
@@ -107,12 +125,13 @@ function finish() {
   state.progress = 100;
   updateCloud();
   cloudWrap.classList.add("is-done");
+  setExpression("expression-light");
   setSpeech(randomItem(finalTexts));
   controls.innerHTML = '<button class="control-button reset-button" type="button" data-action="reset">再来一次</button>';
   spawnParticles(10);
 }
 
-function lighten() {
+function lighten(action = "lighten") {
   if (state.busy) {
     return;
   }
@@ -123,15 +142,25 @@ function lighten() {
   }
 
   state.busy = true;
+  state.lastAction = action;
   const gain = 7 + Math.random() * 8;
   state.progress = Math.min(100, state.progress + gain);
-  bounceCloud();
+  animateCloud(action);
+  setExpression({
+    rub: "expression-relief",
+    blow: "expression-dizzy",
+    lighten: "expression-light",
+    pretend: "expression-smile"
+  }[action] || "expression-smile");
   updateCloud();
   setSpeech(randomItem(actionTexts));
   spawnParticles(6);
 
   window.setTimeout(() => {
     state.busy = false;
+    if (!state.done && state.progress < 100) {
+      setExpression("expression-calm");
+    }
     if (state.progress >= 100) {
       finish();
     }
@@ -143,6 +172,8 @@ function reset() {
   state.done = false;
   state.busy = false;
   cloudWrap.classList.remove("is-done", "is-bouncing");
+  cloudWrap.classList.remove("is-rubbing", "is-blowing", "is-pretending");
+  setExpression("expression-calm");
   controls.innerHTML = `
     <button class="control-button" type="button" data-action="rub">揉一下</button>
     <button class="control-button" type="button" data-action="blow">吹走一点</button>
@@ -176,7 +207,7 @@ controls.addEventListener("click", (event) => {
     return;
   }
 
-  lighten();
+  lighten(button.dataset.action);
 });
 
 document.addEventListener("visibilitychange", () => {
@@ -189,4 +220,5 @@ document.addEventListener("visibilitychange", () => {
 });
 
 updateCloud();
+setExpression("expression-calm");
 scheduleBlink();

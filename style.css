@@ -155,7 +155,7 @@ h1 {
 .dog-button {
   position: relative;
   z-index: 2;
-  width: min(68vw, 270px);
+  width: min(62vw, 230px);
   aspect-ratio: 1 / 1;
   margin-bottom: 18px;
   padding: 0;
@@ -202,7 +202,7 @@ h1 {
 .line-dog path,
 .line-dog circle {
   stroke: var(--ink);
-  stroke-width: 7.5;
+  stroke-width: 6.2;
   stroke-linecap: round;
   stroke-linejoin: round;
   fill: none;
@@ -214,27 +214,40 @@ h1 {
 
 .line-dog .nose,
 .line-dog .dot,
+.line-dog .collar-dot,
 .line-dog .eyes-focus circle {
   fill: var(--ink);
 }
 
-.line-dog .dot {
+.line-dog .dot,
+.line-dog .collar-dot {
   stroke-width: 0;
+}
+
+.line-dog .face,
+.line-dog .body-blob {
+  stroke-dasharray: 430;
+  stroke-dashoffset: 0;
+}
+
+.line-dog .sketch-gap {
+  opacity: 0.82;
+  stroke-width: 4.4;
 }
 
 .dog-float {
   animation: dogIdle 4s ease-in-out infinite;
-  transform-origin: 130px 160px;
+  transform-origin: 130px 155px;
 }
 
 .body {
   animation: dogBreath 4s ease-in-out infinite;
-  transform-origin: 130px 180px;
+  transform-origin: 130px 186px;
 }
 
 .tail {
   animation: tailIdle 5.8s ease-in-out infinite;
-  transform-origin: 190px 157px;
+  transform-origin: 178px 172px;
 }
 
 .ear {
@@ -242,12 +255,12 @@ h1 {
 }
 
 .left-ear {
-  transform-origin: 78px 96px;
+  transform-origin: 76px 98px;
   animation: earTinyLeft 7.2s ease-in-out infinite;
 }
 
 .right-ear {
-  transform-origin: 182px 96px;
+  transform-origin: 184px 98px;
   animation: earTinyRight 7.2s ease-in-out infinite 0.18s;
 }
 

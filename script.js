@@ -1,81 +1,47 @@
-const dogButton = document.querySelector("#dogButton");
-const stage = document.querySelector("#stage");
+const cloudWrap = document.querySelector("#cloudWrap");
 const speechBubble = document.querySelector("#speechBubble");
-const clickCount = document.querySelector("#clickCount");
 const particleLayer = document.querySelector("#particleLayer");
-const petButton = document.querySelector("#petButton");
-const workButton = document.querySelector("#workButton");
-const phraseButton = document.querySelector("#phraseButton");
+const progressText = document.querySelector("#progressText");
+const progressFill = document.querySelector("#progressFill");
+const controls = document.querySelector("#controls");
 
-const phraseTexts = [
-  "你戳我一下，我就假装很有用。",
-  "今日建议：少内耗，多吃饭。",
-  "烦人的事情先放旁边，我帮你盯着。",
-  "检测到有人路过，自动发送一点点好运。",
-  "电子糖已发放，热量为 0。",
-  "我没有什么功能，但我情绪价值还行。",
-  "如果今天有点累，那就先休息一下。",
-  "我只是一只网页生物，不负责解决问题，但负责装可爱。"
+const actionTexts = [
+  "已处理 3% 的烦人东西。",
+  "这一步主要靠玄学，但看起来有点用。",
+  "烦人值 -1，虽然不知道有没有到账。",
+  "先把脑子里的杂音音量调低一点。",
+  "今天不用赢过所有人，能稳定一点就不错。",
+  "好，刚刚已经帮你把烦人的东西打包了一点点。",
+  "先别急着解决全世界，喝口水。",
+  "今日建议：把不重要的人从后台关掉。",
+  "有些事不是你不行，是它本来就烦。",
+  "云朵正在努力变轻，虽然它也不知道自己在干嘛。",
+  "已吹走一点点，但不要问吹到哪里去了。",
+  "检测到烦人东西，正在假装处理。",
+  "处理完成度增加了，可信度不详。",
+  "这不是魔法，但可以假装一下。",
+  "没关系，先轻一点点也算赢。"
 ];
 
-const clickTexts = [
-  "检测到你点了它，它决定假装很忙。",
-  "你戳我一下，我就假装很有用。",
-  "电子糖已发放，热量为 0。",
-  "我没有什么功能，但我情绪价值还行。"
+const finalTexts = [
+  "好了，今天先轻到这里。",
+  "已经减到差不多了，剩下的交给睡眠和好吃的。",
+  "今日精神重量已临时打包。"
 ];
-
-const petTexts = [
-  "收到摸摸，开心值 +1。",
-  "如果今天有点累，那就先休息一下。",
-  "烦人的事情先放旁边，我帮你盯着。",
-  "小狗收到一点点鼓励，尾巴开始加班。"
-];
-
-const workTexts = [
-  "正在努力工作中……但好像只是换了个姿势。",
-  "小狗正在加载聪明模块……加载失败。",
-  "它看起来很努力，其实只是在发呆。",
-  "检测到你点了它，它决定假装很忙。"
-];
-
-const attentionTexts = [
-  "检测到有人路过，自动发送一点点好运。",
-  "我刚刚歪头了，说明我在思考。",
-  "路过也算相遇，先给你点个头。",
-  "小狗正在低功耗待机。"
-];
-
-const expressions = ["expression-normal", "expression-happy", "expression-comfy", "expression-work", "expression-daze"];
 
 const state = {
-  mode: "idle",
-  clicks: 0,
-  phraseIndex: 0,
-  actionTimer: 0,
-  attentionTimer: 0,
+  progress: 0,
+  busy: false,
+  done: false,
   blinkTimer: 0,
-  settleTimer: 0,
-  expressionTimer: 0,
-  dragging: false,
-  dragStarted: false,
-  pointerId: null,
-  startX: 0,
-  startY: 0,
-  dragX: 0,
-  dragY: 0
+  bounceTimer: 0
 };
 
 function randomItem(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-function setSpeech(text, fade = true) {
-  if (!fade) {
-    speechBubble.textContent = text;
-    return;
-  }
-
+function setSpeech(text) {
   speechBubble.classList.add("is-changing");
   window.setTimeout(() => {
     speechBubble.textContent = text;
@@ -83,81 +49,44 @@ function setSpeech(text, fade = true) {
   }, 180);
 }
 
-function setExpression(name) {
-  dogButton.classList.remove(...expressions);
-  dogButton.classList.add(name);
+function updateCloud() {
+  const ratio = state.progress / 100;
+  const scale = 1 - ratio * 0.34;
+  const opacity = 1 - ratio * 0.32;
+  const lift = ratio * 72;
+  const brightness = 1 + ratio * 0.18;
+
+  cloudWrap.style.setProperty("--cloud-scale", scale.toFixed(3));
+  cloudWrap.style.setProperty("--cloud-opacity", opacity.toFixed(3));
+  cloudWrap.style.setProperty("--lift", lift.toFixed(1));
+  cloudWrap.style.setProperty("--cloud-brightness", brightness.toFixed(3));
+  progressText.textContent = `已减轻 ${Math.round(state.progress)}%`;
+  progressFill.style.width = `${state.progress}%`;
 }
 
-function flashExpression(name, duration = 700) {
-  window.clearTimeout(state.expressionTimer);
-  setExpression(name);
-  state.expressionTimer = window.setTimeout(() => setExpression("expression-normal"), duration);
-}
-
-function setControlsDisabled(disabled) {
-  petButton.disabled = disabled;
-  workButton.disabled = disabled;
-  phraseButton.disabled = disabled;
-  dogButton.setAttribute("aria-busy", disabled ? "true" : "false");
-}
-
-function setMode(mode, className, duration, expression, after) {
-  if (state.mode !== "idle") {
-    return false;
-  }
-
-  window.clearTimeout(state.actionTimer);
-  state.mode = mode;
-  dogButton.classList.add(className);
-  setExpression(expression);
-
-  const lockControls = mode !== "attention";
-  if (lockControls) {
-    setControlsDisabled(true);
-  }
-
-  state.actionTimer = window.setTimeout(() => {
-    dogButton.classList.remove(className);
-    setExpression("expression-normal");
-    state.mode = "idle";
-
-    if (lockControls) {
-      setControlsDisabled(false);
-      scheduleAttention();
-    }
-
-    if (after) {
-      after();
-    }
-  }, duration);
-
-  return true;
-}
-
-function spawnParticles(type, amount) {
-  const stageRect = stage.getBoundingClientRect();
-  const dogRect = dogButton.getBoundingClientRect();
-  const baseX = dogRect.left + dogRect.width / 2 - stageRect.left;
-  const baseY = dogRect.top + dogRect.height * 0.45 - stageRect.top;
-  const colors = ["#ef9c7e", "#e5b64a", "#8fc7d5", "#ffffff"];
+function spawnParticles(amount = 6) {
+  const stageRect = particleLayer.getBoundingClientRect();
+  const cloudRect = cloudWrap.getBoundingClientRect();
+  const baseX = cloudRect.left + cloudRect.width / 2 - stageRect.left;
+  const baseY = cloudRect.top + cloudRect.height * 0.45 - stageRect.top;
+  const colors = ["#b9e5f1", "#d9d2ff", "#e7bb55", "#ffffff", "#f4aa93"];
 
   for (let index = 0; index < amount; index += 1) {
     const particle = document.createElement("span");
-    const shape = type === "pet" ? (index % 2 ? "star" : "dot") : type === "work" ? "bubble" : index % 2 ? "star" : "dot";
-    const size = 8 + Math.random() * 9;
-    const x = baseX + (Math.random() - 0.5) * 80;
-    const y = baseY + (Math.random() - 0.5) * 40;
+    const size = 7 + Math.random() * 8;
+    const x = baseX + (Math.random() - 0.5) * 130;
+    const y = baseY + (Math.random() - 0.5) * 70;
     const dx = `${(Math.random() - 0.5) * 76}px`;
-    const dy = `${-54 - Math.random() * 58}px`;
+    const dy = `${-54 - Math.random() * 68}px`;
 
-    particle.className = `particle ${shape}`;
+    particle.className = `particle ${index % 2 ? "star" : "dot"}`;
     particle.style.setProperty("--x", `${x}px`);
     particle.style.setProperty("--y", `${y}px`);
     particle.style.setProperty("--dx", dx);
     particle.style.setProperty("--dy", dy);
     particle.style.setProperty("--size", `${size}px`);
     particle.style.setProperty("--spin", `${Math.random() * 180 - 90}deg`);
-    particle.style.setProperty("--duration", `${620 + Math.random() * 300}ms`);
+    particle.style.setProperty("--duration", `${680 + Math.random() * 320}ms`);
     particle.style.setProperty("--color", colors[index % colors.length]);
 
     particleLayer.appendChild(particle);
@@ -165,158 +94,99 @@ function spawnParticles(type, amount) {
   }
 }
 
-function handleDogClick() {
-  if (state.dragStarted || state.mode !== "idle") {
-    state.dragStarted = false;
-    return;
-  }
-
-  state.clicks += 1;
-  clickCount.textContent = state.clicks;
-  setSpeech(randomItem(clickTexts));
-  spawnParticles("click", 4);
-  setMode("click", "is-clicking", 580, "expression-happy");
+function bounceCloud() {
+  window.clearTimeout(state.bounceTimer);
+  cloudWrap.classList.remove("is-bouncing");
+  void cloudWrap.offsetWidth;
+  cloudWrap.classList.add("is-bouncing");
+  state.bounceTimer = window.setTimeout(() => cloudWrap.classList.remove("is-bouncing"), 640);
 }
 
-function handlePet() {
-  if (!setMode("pet", "is-petting", 820, "expression-comfy")) {
-    return;
-  }
-
-  setSpeech(randomItem(petTexts));
-  spawnParticles("pet", 5);
+function finish() {
+  state.done = true;
+  state.progress = 100;
+  updateCloud();
+  cloudWrap.classList.add("is-done");
+  setSpeech(randomItem(finalTexts));
+  controls.innerHTML = '<button class="control-button reset-button" type="button" data-action="reset">再来一次</button>';
+  spawnParticles(10);
 }
 
-function handleWork() {
-  if (!setMode("work", "is-working", 1050, "expression-work", () => spawnParticles("work", 4))) {
+function lighten() {
+  if (state.busy) {
     return;
   }
 
-  setSpeech(randomItem(workTexts));
+  if (state.done) {
+    reset();
+    return;
+  }
+
+  state.busy = true;
+  const gain = 7 + Math.random() * 8;
+  state.progress = Math.min(100, state.progress + gain);
+  bounceCloud();
+  updateCloud();
+  setSpeech(randomItem(actionTexts));
+  spawnParticles(6);
+
+  window.setTimeout(() => {
+    state.busy = false;
+    if (state.progress >= 100) {
+      finish();
+    }
+  }, 540);
 }
 
-function handlePhrase() {
-  const expression = randomItem(["expression-happy", "expression-daze", "expression-comfy"]);
-  if (!setMode("phrase", "is-nodding", 650, expression)) {
-    return;
-  }
-
-  state.phraseIndex = (state.phraseIndex + 1) % phraseTexts.length;
-  setSpeech(phraseTexts[state.phraseIndex]);
+function reset() {
+  state.progress = 0;
+  state.done = false;
+  state.busy = false;
+  cloudWrap.classList.remove("is-done", "is-bouncing");
+  controls.innerHTML = `
+    <button class="control-button" type="button" data-action="rub">揉一下</button>
+    <button class="control-button" type="button" data-action="blow">吹走一点</button>
+    <button class="control-button" type="button" data-action="lighten">变轻一点</button>
+    <button class="control-button" type="button" data-action="pretend">假装没事</button>
+  `;
+  updateCloud();
+  setSpeech("检测到烦人东西，正在假装处理。");
 }
 
 function scheduleBlink() {
   window.clearTimeout(state.blinkTimer);
   const delay = 3000 + Math.random() * 3000;
   state.blinkTimer = window.setTimeout(() => {
-    if (state.mode === "idle" && !state.dragging) {
-      dogButton.classList.add("is-blinking");
-      window.setTimeout(() => dogButton.classList.remove("is-blinking"), 160);
+    if (!state.done) {
+      cloudWrap.classList.add("is-blinking");
+      window.setTimeout(() => cloudWrap.classList.remove("is-blinking"), 160);
     }
     scheduleBlink();
   }, delay);
 }
 
-function scheduleAttention() {
-  window.clearTimeout(state.attentionTimer);
-  const delay = 6000 + Math.random() * 6000;
-  state.attentionTimer = window.setTimeout(() => {
-    if (state.mode === "idle" && !state.dragging) {
-      setSpeech(randomItem(attentionTexts));
-      setMode("attention", "is-attention", 780, randomItem(["expression-normal", "expression-daze", "expression-happy"]));
-    }
-    scheduleAttention();
-  }, delay);
-}
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function updateDrag(x, y) {
-  dogButton.style.setProperty("--drag-x", `${x}px`);
-  dogButton.style.setProperty("--drag-y", `${y}px`);
-}
-
-function startDrag(event) {
-  if (state.mode !== "idle") {
+controls.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) {
     return;
   }
 
-  state.dragging = true;
-  state.dragStarted = false;
-  state.pointerId = event.pointerId;
-  state.startX = event.clientX;
-  state.startY = event.clientY;
-  dogButton.setPointerCapture(event.pointerId);
-}
-
-function moveDrag(event) {
-  if (!state.dragging || event.pointerId !== state.pointerId) {
+  if (button.dataset.action === "reset") {
+    reset();
     return;
   }
 
-  const stageRect = stage.getBoundingClientRect();
-  const dogRect = dogButton.getBoundingClientRect();
-  const limitX = Math.max(0, (stageRect.width - dogRect.width) / 2 - 8);
-  const limitY = Math.max(0, (stageRect.height - dogRect.height) / 2 - 28);
-  const nextX = clamp(event.clientX - state.startX, -limitX, limitX);
-  const nextY = clamp(event.clientY - state.startY, -limitY, limitY);
-
-  if (Math.abs(nextX) + Math.abs(nextY) > 7) {
-    state.dragStarted = true;
-    dogButton.classList.add("is-dragging");
-  }
-
-  state.dragX = nextX;
-  state.dragY = nextY;
-  updateDrag(nextX, nextY);
-}
-
-function endDrag(event) {
-  if (!state.dragging || event.pointerId !== state.pointerId) {
-    return;
-  }
-
-  state.dragging = false;
-  state.pointerId = null;
-  dogButton.classList.remove("is-dragging");
-  dogButton.classList.add("is-settling");
-  updateDrag(state.dragX * 0.16, state.dragY * 0.16);
-
-  window.clearTimeout(state.settleTimer);
-  state.settleTimer = window.setTimeout(() => {
-    dogButton.classList.remove("is-settling");
-  }, 470);
-
-  window.setTimeout(() => {
-    state.dragX = 0;
-    state.dragY = 0;
-    updateDrag(0, 0);
-  }, 120);
-}
-
-dogButton.addEventListener("click", handleDogClick);
-dogButton.addEventListener("pointerdown", startDrag);
-dogButton.addEventListener("pointermove", moveDrag);
-dogButton.addEventListener("pointerup", endDrag);
-dogButton.addEventListener("pointercancel", endDrag);
-petButton.addEventListener("click", handlePet);
-workButton.addEventListener("click", handleWork);
-phraseButton.addEventListener("click", handlePhrase);
+  lighten();
+});
 
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
-    window.clearTimeout(state.attentionTimer);
     window.clearTimeout(state.blinkTimer);
     return;
   }
 
-  if (state.mode === "idle") {
-    scheduleAttention();
-    scheduleBlink();
-  }
+  scheduleBlink();
 });
 
-scheduleAttention();
+updateCloud();
 scheduleBlink();

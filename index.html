@@ -3,32 +3,105 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Little Web Pet</title>
+    <title>一只路过的小狗</title>
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <main class="page-shell">
       <section class="pet-card" aria-labelledby="title">
-        <div class="title-row">
+        <header class="hero">
           <div>
             <p class="kicker">little-web-pet</p>
-            <h1 id="title">一只正在营业的小狗</h1>
+            <h1 id="title">一只路过的小狗</h1>
+            <p class="subtitle">点它一下，它可能会认真胡说八道。</p>
           </div>
-          <div class="counter" aria-live="polite">
-            点击 <span id="clickCount">0</span>
-          </div>
-        </div>
+          <div class="counter" aria-live="polite">已被戳 <span id="clickCount">0</span> 次</div>
+        </header>
 
         <div class="stage" id="stage">
           <div class="speech-bubble" id="speechBubble" aria-live="polite">
-            今天也只是普通地待机。
+            今日建议：少内耗，多吃饭。
           </div>
 
-          <button class="pet-wrap" id="petWrap" type="button" aria-label="点击小狗" aria-describedby="speechBubble">
-            <span class="soft-shadow" aria-hidden="true"></span>
-            <span class="dog-motion" id="dogMotion">
-              <img class="dog-image" src="assets/dog.png" alt="一只小狗桌宠">
-            </span>
+          <button class="dog-button expression-normal" id="dogButton" type="button" aria-label="戳一下小狗" aria-describedby="speechBubble">
+            <span class="dog-shadow" aria-hidden="true"></span>
+            <svg class="line-dog" viewBox="0 0 260 260" role="img" aria-label="代码绘制的白色线条小狗">
+              <g class="dog-float">
+                <g class="tail">
+                  <path d="M188 145 C223 126 229 169 199 165" />
+                  <path class="sketch-line" d="M197 151 C214 149 216 160 202 160" />
+                </g>
+
+                <g class="body">
+                  <path class="fill-white" d="M69 124 C54 145 51 195 73 211 C91 225 165 226 188 211 C212 195 207 146 190 124 C177 105 87 104 69 124 Z" />
+                  <path class="belly-line" d="M88 204 C109 215 151 216 173 204" />
+                </g>
+
+                <g class="left-paw paw">
+                  <path class="fill-white" d="M79 182 C68 183 62 193 66 203 C70 214 87 213 92 202 C97 191 91 181 79 182 Z" />
+                  <path d="M75 199 L75 204" />
+                  <path d="M84 198 L84 204" />
+                </g>
+
+                <g class="right-paw paw">
+                  <path class="fill-white" d="M178 182 C190 183 196 193 192 203 C188 214 171 213 166 202 C161 191 166 181 178 182 Z" />
+                  <path d="M175 198 L175 204" />
+                  <path d="M184 199 L184 204" />
+                </g>
+
+                <g class="head">
+                  <g class="ear left-ear">
+                    <path class="fill-white" d="M74 75 C53 55 35 69 42 94 C47 114 66 120 78 105" />
+                    <path class="sketch-line" d="M53 80 C58 84 62 91 62 101" />
+                  </g>
+                  <g class="ear right-ear">
+                    <path class="fill-white" d="M185 75 C207 55 225 69 218 94 C213 114 194 120 182 105" />
+                    <path class="sketch-line" d="M207 80 C202 84 198 91 198 101" />
+                  </g>
+
+                  <path class="fill-white face" d="M71 69 C92 43 166 42 188 69 C213 101 199 151 166 164 C144 173 112 173 92 164 C58 149 46 101 71 69 Z" />
+                  <path class="cheek left-cheek" d="M74 125 C66 130 62 137 63 145" />
+                  <path class="cheek right-cheek" d="M186 125 C194 130 198 137 197 145" />
+
+                  <g class="eyes eyes-normal">
+                    <path d="M100 109 C102 101 112 101 114 109" />
+                    <path d="M146 109 C148 101 158 101 160 109" />
+                  </g>
+                  <g class="eyes eyes-happy">
+                    <path d="M96 106 C103 116 113 116 119 106" />
+                    <path d="M141 106 C148 116 158 116 164 106" />
+                  </g>
+                  <g class="eyes eyes-comfy">
+                    <path d="M96 108 C104 112 113 112 121 108" />
+                    <path d="M139 108 C147 112 156 112 164 108" />
+                  </g>
+                  <g class="eyes eyes-focus">
+                    <circle cx="108" cy="108" r="4.2" />
+                    <circle cx="153" cy="108" r="4.2" />
+                  </g>
+                  <g class="eyes eyes-daze">
+                    <path d="M101 104 L114 113" />
+                    <path d="M114 104 L101 113" />
+                    <path d="M146 104 L159 113" />
+                    <path d="M159 104 L146 113" />
+                  </g>
+
+                  <g class="blink-lines">
+                    <path d="M96 108 C104 111 113 111 121 108" />
+                    <path d="M139 108 C147 111 156 111 164 108" />
+                  </g>
+
+                  <g class="muzzle">
+                    <path class="nose" d="M124 120 C128 117 134 117 138 120 C137 127 125 127 124 120 Z" />
+                    <path class="mouth mouth-normal" d="M131 127 C131 136 122 138 118 132 M131 127 C131 136 140 138 144 132" />
+                    <path class="mouth mouth-happy" d="M116 131 C124 145 139 145 147 131" />
+                    <path class="mouth mouth-work" d="M121 135 L143 135" />
+                    <path class="mouth mouth-daze" d="M128 134 C131 130 136 130 139 134 C136 139 131 139 128 134 Z" />
+                  </g>
+                </g>
+              </g>
+            </svg>
+            <span class="working-label" aria-hidden="true">working<span></span></span>
           </button>
 
           <div class="particle-layer" id="particleLayer" aria-hidden="true"></div>
@@ -39,6 +112,8 @@
           <button class="control-button" id="workButton" type="button">让它打工</button>
           <button class="control-button" id="phraseButton" type="button">换一句</button>
         </div>
+
+        <p class="footer-note">如果它有点好笑，那它就算没白营业。</p>
       </section>
     </main>
 

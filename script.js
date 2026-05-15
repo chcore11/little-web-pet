@@ -1,4 +1,4 @@
-const petWrap = document.querySelector("#petWrap");
+const dogButton = document.querySelector("#dogButton");
 const stage = document.querySelector("#stage");
 const speechBubble = document.querySelector("#speechBubble");
 const clickCount = document.querySelector("#clickCount");
@@ -7,61 +7,70 @@ const petButton = document.querySelector("#petButton");
 const workButton = document.querySelector("#workButton");
 const phraseButton = document.querySelector("#phraseButton");
 
-const phrases = [
-  "今天也只是普通地待机。",
-  "我在这里，基本上没有造成任何生产事故。",
-  "刚才那个动作是计划内的。",
-  "保持可爱需要一点点 CPU。",
-  "请稍等，我正在假装听懂。"
+const phraseTexts = [
+  "你戳我一下，我就假装很有用。",
+  "今日建议：少内耗，多吃饭。",
+  "烦人的事情先放旁边，我帮你盯着。",
+  "检测到有人路过，自动发送一点点好运。",
+  "电子糖已发放，热量为 0。",
+  "我没有什么功能，但我情绪价值还行。",
+  "如果今天有点累，那就先休息一下。",
+  "我只是一只网页生物，不负责解决问题，但负责装可爱。"
 ];
 
-const clickPhrases = [
-  "哎呀，点到小狗了。",
-  "收到一次有效点击。",
-  "这里弹了一下，应该很合理。",
-  "小狗确认：手感不错。"
+const clickTexts = [
+  "检测到你点了它，它决定假装很忙。",
+  "你戳我一下，我就假装很有用。",
+  "电子糖已发放，热量为 0。",
+  "我没有什么功能，但我情绪价值还行。"
 ];
 
-const petPhrases = [
-  "摸摸已接收。",
-  "头顶温度略微上升。",
-  "小狗决定暂时原谅这个世界。",
-  "再摸一下也不是不行。"
+const petTexts = [
+  "收到摸摸，开心值 +1。",
+  "如果今天有点累，那就先休息一下。",
+  "烦人的事情先放旁边，我帮你盯着。",
+  "小狗收到一点点鼓励，尾巴开始加班。"
 ];
 
-const workPhrases = [
+const workTexts = [
   "正在努力工作中……但好像只是换了个姿势。",
   "小狗正在加载聪明模块……加载失败。",
-  "它看起来很努力，其实只是在发呆。"
+  "它看起来很努力，其实只是在发呆。",
+  "检测到你点了它，它决定假装很忙。"
 ];
 
-const attentionPhrases = [
-  "我刚刚是不是动了一下？",
-  "别看了，我确实在营业。",
-  "检测到路过的人类。"
+const attentionTexts = [
+  "检测到有人路过，自动发送一点点好运。",
+  "我刚刚歪头了，说明我在思考。",
+  "路过也算相遇，先给你点个头。",
+  "小狗正在低功耗待机。"
 ];
+
+const expressions = ["expression-normal", "expression-happy", "expression-comfy", "expression-work", "expression-daze"];
 
 const state = {
   mode: "idle",
   clicks: 0,
-  attentionTimer: 0,
+  phraseIndex: 0,
   actionTimer: 0,
-  phraseIndex: -1,
+  attentionTimer: 0,
+  blinkTimer: 0,
+  settleTimer: 0,
+  expressionTimer: 0,
   dragging: false,
   dragStarted: false,
   pointerId: null,
   startX: 0,
   startY: 0,
   dragX: 0,
-  dragY: 0,
-  settleTimer: 0
+  dragY: 0
 };
 
 function randomItem(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-function setSpeech(text, fade = false) {
+function setSpeech(text, fade = true) {
   if (!fade) {
     speechBubble.textContent = text;
     return;
@@ -74,32 +83,45 @@ function setSpeech(text, fade = false) {
   }, 180);
 }
 
+function setExpression(name) {
+  dogButton.classList.remove(...expressions);
+  dogButton.classList.add(name);
+}
+
+function flashExpression(name, duration = 700) {
+  window.clearTimeout(state.expressionTimer);
+  setExpression(name);
+  state.expressionTimer = window.setTimeout(() => setExpression("expression-normal"), duration);
+}
+
 function setControlsDisabled(disabled) {
   petButton.disabled = disabled;
   workButton.disabled = disabled;
   phraseButton.disabled = disabled;
-  petWrap.setAttribute("aria-busy", disabled ? "true" : "false");
+  dogButton.setAttribute("aria-busy", disabled ? "true" : "false");
 }
 
-function setMode(mode, className, duration, after) {
+function setMode(mode, className, duration, expression, after) {
   if (state.mode !== "idle") {
     return false;
   }
 
   window.clearTimeout(state.actionTimer);
   state.mode = mode;
-  petWrap.classList.add(className);
-  const shouldLockControls = mode !== "attention";
+  dogButton.classList.add(className);
+  setExpression(expression);
 
-  if (shouldLockControls) {
+  const lockControls = mode !== "attention";
+  if (lockControls) {
     setControlsDisabled(true);
   }
 
   state.actionTimer = window.setTimeout(() => {
-    petWrap.classList.remove(className);
+    dogButton.classList.remove(className);
+    setExpression("expression-normal");
     state.mode = "idle";
 
-    if (shouldLockControls) {
+    if (lockControls) {
       setControlsDisabled(false);
       scheduleAttention();
     }
@@ -112,27 +134,21 @@ function setMode(mode, className, duration, after) {
   return true;
 }
 
-function nextPhrase() {
-  state.phraseIndex = (state.phraseIndex + 1) % phrases.length;
-  return phrases[state.phraseIndex];
-}
-
 function spawnParticles(type, amount) {
   const stageRect = stage.getBoundingClientRect();
-  const petRect = petWrap.getBoundingClientRect();
-  const baseX = petRect.left + petRect.width / 2 - stageRect.left;
-  const baseY = petRect.top + petRect.height * 0.42 - stageRect.top;
-  const colors = ["#e87761", "#e7b84c", "#8fc7d5", "#ffffff"];
+  const dogRect = dogButton.getBoundingClientRect();
+  const baseX = dogRect.left + dogRect.width / 2 - stageRect.left;
+  const baseY = dogRect.top + dogRect.height * 0.45 - stageRect.top;
+  const colors = ["#ef9c7e", "#e5b64a", "#8fc7d5", "#ffffff"];
 
   for (let index = 0; index < amount; index += 1) {
     const particle = document.createElement("span");
-    const shape = type === "pet" ? (index % 2 ? "star" : "dot") : type === "work" ? "bubble" : "dot";
+    const shape = type === "pet" ? (index % 2 ? "star" : "dot") : type === "work" ? "bubble" : index % 2 ? "star" : "dot";
     const size = 8 + Math.random() * 9;
-    const spread = type === "click" ? 44 : 64;
-    const x = baseX + (Math.random() - 0.5) * spread;
-    const y = baseY + (Math.random() - 0.5) * 34;
-    const dx = `${(Math.random() - 0.5) * 70}px`;
-    const dy = `${-48 - Math.random() * 54}px`;
+    const x = baseX + (Math.random() - 0.5) * 80;
+    const y = baseY + (Math.random() - 0.5) * 40;
+    const dx = `${(Math.random() - 0.5) * 76}px`;
+    const dy = `${-54 - Math.random() * 58}px`;
 
     particle.className = `particle ${shape}`;
     particle.style.setProperty("--x", `${x}px`);
@@ -141,7 +157,7 @@ function spawnParticles(type, amount) {
     particle.style.setProperty("--dy", dy);
     particle.style.setProperty("--size", `${size}px`);
     particle.style.setProperty("--spin", `${Math.random() * 180 - 90}deg`);
-    particle.style.setProperty("--duration", `${620 + Math.random() * 280}ms`);
+    particle.style.setProperty("--duration", `${620 + Math.random() * 300}ms`);
     particle.style.setProperty("--color", colors[index % colors.length]);
 
     particleLayer.appendChild(particle);
@@ -157,43 +173,57 @@ function handleDogClick() {
 
   state.clicks += 1;
   clickCount.textContent = state.clicks;
-  setSpeech(randomItem(clickPhrases), true);
-  spawnParticles("click", 5);
-  setMode("click", "is-clicking", 540);
+  setSpeech(randomItem(clickTexts));
+  spawnParticles("click", 4);
+  setMode("click", "is-clicking", 580, "expression-happy");
 }
 
 function handlePet() {
-  if (!setMode("pet", "is-petting", 780)) {
+  if (!setMode("pet", "is-petting", 820, "expression-comfy")) {
     return;
   }
 
-  setSpeech(randomItem(petPhrases), true);
-  spawnParticles("pet", 4);
+  setSpeech(randomItem(petTexts));
+  spawnParticles("pet", 5);
 }
 
 function handleWork() {
-  if (!setMode("work", "is-working", 1050, () => spawnParticles("work", 4))) {
+  if (!setMode("work", "is-working", 1050, "expression-work", () => spawnParticles("work", 4))) {
     return;
   }
 
-  setSpeech(randomItem(workPhrases), true);
+  setSpeech(randomItem(workTexts));
 }
 
 function handlePhrase() {
-  if (!setMode("phrase", "is-nodding", 580)) {
+  const expression = randomItem(["expression-happy", "expression-daze", "expression-comfy"]);
+  if (!setMode("phrase", "is-nodding", 650, expression)) {
     return;
   }
 
-  setSpeech(nextPhrase(), true);
+  state.phraseIndex = (state.phraseIndex + 1) % phraseTexts.length;
+  setSpeech(phraseTexts[state.phraseIndex]);
+}
+
+function scheduleBlink() {
+  window.clearTimeout(state.blinkTimer);
+  const delay = 3000 + Math.random() * 3000;
+  state.blinkTimer = window.setTimeout(() => {
+    if (state.mode === "idle" && !state.dragging) {
+      dogButton.classList.add("is-blinking");
+      window.setTimeout(() => dogButton.classList.remove("is-blinking"), 160);
+    }
+    scheduleBlink();
+  }, delay);
 }
 
 function scheduleAttention() {
   window.clearTimeout(state.attentionTimer);
-  const delay = 5000 + Math.random() * 4000;
+  const delay = 6000 + Math.random() * 6000;
   state.attentionTimer = window.setTimeout(() => {
     if (state.mode === "idle" && !state.dragging) {
-      setSpeech(randomItem(attentionPhrases), true);
-      setMode("attention", "is-attention", 760);
+      setSpeech(randomItem(attentionTexts));
+      setMode("attention", "is-attention", 780, randomItem(["expression-normal", "expression-daze", "expression-happy"]));
     }
     scheduleAttention();
   }, delay);
@@ -204,8 +234,8 @@ function clamp(value, min, max) {
 }
 
 function updateDrag(x, y) {
-  petWrap.style.setProperty("--drag-x", `${x}px`);
-  petWrap.style.setProperty("--drag-y", `${y}px`);
+  dogButton.style.setProperty("--drag-x", `${x}px`);
+  dogButton.style.setProperty("--drag-y", `${y}px`);
 }
 
 function startDrag(event) {
@@ -218,7 +248,7 @@ function startDrag(event) {
   state.pointerId = event.pointerId;
   state.startX = event.clientX;
   state.startY = event.clientY;
-  petWrap.setPointerCapture(event.pointerId);
+  dogButton.setPointerCapture(event.pointerId);
 }
 
 function moveDrag(event) {
@@ -227,15 +257,15 @@ function moveDrag(event) {
   }
 
   const stageRect = stage.getBoundingClientRect();
-  const petRect = petWrap.getBoundingClientRect();
-  const limitX = Math.max(0, (stageRect.width - petRect.width) / 2 - 8);
-  const limitY = Math.max(0, (stageRect.height - petRect.height) / 2 - 28);
+  const dogRect = dogButton.getBoundingClientRect();
+  const limitX = Math.max(0, (stageRect.width - dogRect.width) / 2 - 8);
+  const limitY = Math.max(0, (stageRect.height - dogRect.height) / 2 - 28);
   const nextX = clamp(event.clientX - state.startX, -limitX, limitX);
   const nextY = clamp(event.clientY - state.startY, -limitY, limitY);
 
   if (Math.abs(nextX) + Math.abs(nextY) > 7) {
     state.dragStarted = true;
-    petWrap.classList.add("is-dragging");
+    dogButton.classList.add("is-dragging");
   }
 
   state.dragX = nextX;
@@ -250,13 +280,13 @@ function endDrag(event) {
 
   state.dragging = false;
   state.pointerId = null;
-  petWrap.classList.remove("is-dragging");
-  petWrap.classList.add("is-settling");
+  dogButton.classList.remove("is-dragging");
+  dogButton.classList.add("is-settling");
   updateDrag(state.dragX * 0.16, state.dragY * 0.16);
 
   window.clearTimeout(state.settleTimer);
   state.settleTimer = window.setTimeout(() => {
-    petWrap.classList.remove("is-settling");
+    dogButton.classList.remove("is-settling");
   }, 470);
 
   window.setTimeout(() => {
@@ -266,23 +296,27 @@ function endDrag(event) {
   }, 120);
 }
 
-petWrap.addEventListener("click", handleDogClick);
-petWrap.addEventListener("pointerdown", startDrag);
-petWrap.addEventListener("pointermove", moveDrag);
-petWrap.addEventListener("pointerup", endDrag);
-petWrap.addEventListener("pointercancel", endDrag);
+dogButton.addEventListener("click", handleDogClick);
+dogButton.addEventListener("pointerdown", startDrag);
+dogButton.addEventListener("pointermove", moveDrag);
+dogButton.addEventListener("pointerup", endDrag);
+dogButton.addEventListener("pointercancel", endDrag);
 petButton.addEventListener("click", handlePet);
 workButton.addEventListener("click", handleWork);
 phraseButton.addEventListener("click", handlePhrase);
+
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     window.clearTimeout(state.attentionTimer);
+    window.clearTimeout(state.blinkTimer);
     return;
   }
 
   if (state.mode === "idle") {
     scheduleAttention();
+    scheduleBlink();
   }
 });
 
 scheduleAttention();
+scheduleBlink();

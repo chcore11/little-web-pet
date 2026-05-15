@@ -131,10 +131,51 @@ h1 {
     linear-gradient(180deg, rgba(234, 249, 255, 0.64), rgba(255, 243, 220, 0.54));
 }
 
+.drift-items {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.drift-items span {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 0 5px rgba(185, 229, 241, 0.14);
+  animation: backgroundDrift 9s ease-in-out infinite;
+}
+
+.drift-items span:nth-child(1) {
+  left: 16%;
+  top: 22%;
+}
+
+.drift-items span:nth-child(2) {
+  right: 18%;
+  top: 34%;
+  width: 7px;
+  height: 7px;
+  animation-delay: -3s;
+}
+
+.drift-items span:nth-child(3) {
+  left: 28%;
+  bottom: 24%;
+  width: 6px;
+  height: 6px;
+  animation-delay: -5.5s;
+}
+
 .cloud-wrap {
   position: relative;
   width: min(72vw, 310px);
   aspect-ratio: 320 / 220;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
   transform:
     translateY(calc(var(--lift, 0) * -1px))
     scale(var(--cloud-scale, 1));
@@ -144,6 +185,17 @@ h1 {
     transform 540ms cubic-bezier(0.2, 0.9, 0.2, 1),
     opacity 540ms ease,
     filter 540ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cloud-wrap:focus-visible {
+  outline: 3px solid rgba(185, 229, 241, 0.9);
+  outline-offset: 8px;
+  border-radius: 40px;
+}
+
+.cloud-wrap:hover .cloud-svg {
+  filter: drop-shadow(0 10px 16px rgba(65, 54, 70, 0.07));
 }
 
 .cloud-wrap.is-done .cloud-svg,
@@ -171,6 +223,14 @@ h1 {
 
 .cloud-wrap.is-pretending .cloud-svg {
   animation: cloudPretend 620ms ease;
+}
+
+.cloud-wrap.is-squeezing .cloud-svg {
+  animation: cloudSqueeze 620ms cubic-bezier(0.2, 1.15, 0.3, 1);
+}
+
+.cloud-wrap.is-shining .cloud-svg {
+  animation: cloudShine 760ms ease;
 }
 
 .cloud-shadow {
@@ -289,6 +349,10 @@ h1 {
   transition: opacity 180ms ease, transform 180ms ease;
 }
 
+.speech-bubble.is-pop {
+  animation: bubblePop 420ms ease;
+}
+
 .speech-bubble.is-changing {
   opacity: 0;
   transform: translateX(-50%) translateY(6px) scale(0.98);
@@ -322,11 +386,34 @@ h1 {
   clip-path: polygon(50% 0%, 61% 34%, 98% 35%, 68% 56%, 79% 91%, 50% 70%, 21% 91%, 32% 56%, 2% 35%, 39% 34%);
 }
 
+.float-note {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: 4;
+  padding: 6px 10px;
+  border: 1px solid rgba(116, 109, 120, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.84);
+  color: var(--muted);
+  font-size: 0.82rem;
+  pointer-events: none;
+  animation: noteFloat 1000ms ease-out forwards;
+}
+
 .controls {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
+}
+
+.micro-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .mini-stats {
@@ -358,6 +445,33 @@ h1 {
   cursor: pointer;
   box-shadow: 0 8px 18px rgba(65, 54, 70, 0.08);
   transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.micro-button {
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid rgba(116, 109, 120, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.48);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.88rem;
+  transition: transform 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.micro-button:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--ink);
+}
+
+.micro-button:active {
+  transform: translateY(1px);
+}
+
+.micro-button:focus-visible {
+  outline: 3px solid rgba(217, 210, 255, 0.86);
+  outline-offset: 3px;
 }
 
 .control-button:hover {
@@ -411,6 +525,29 @@ h1 {
   }
 }
 
+@keyframes cloudSqueeze {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(10px) scale(1.1, 0.86);
+  }
+  68% {
+    transform: translateY(-8px) scale(0.94, 1.06);
+  }
+}
+
+@keyframes cloudShine {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  45% {
+    filter: brightness(1.18) saturate(1.08);
+  }
+}
+
 @keyframes cloudRub {
   0%,
   100% {
@@ -450,6 +587,42 @@ h1 {
   }
   64% {
     transform: translateY(-4px) scale(0.98, 1.02);
+  }
+}
+
+@keyframes bubblePop {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  45% {
+    transform: translateX(-50%) scale(1.035);
+  }
+}
+
+@keyframes backgroundDrift {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.32;
+  }
+  50% {
+    transform: translateY(-16px) translateX(8px);
+    opacity: 0.76;
+  }
+}
+
+@keyframes noteFloat {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -20%) scale(0.9);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -92%) scale(1);
   }
 }
 

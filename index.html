@@ -28,7 +28,13 @@
         </div>
 
         <div class="stage" id="stage">
-          <div class="cloud-wrap" id="cloudWrap" aria-label="烦人的东西云朵" role="img">
+          <div class="drift-items" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+          <button class="cloud-wrap" id="cloudWrap" type="button" aria-label="点一下烦人东西云朵">
             <span class="cloud-shadow" aria-hidden="true"></span>
             <svg class="cloud-svg" viewBox="0 0 320 220" aria-hidden="true">
               <defs>
@@ -82,7 +88,7 @@
               <text class="cloud-label" x="160" y="94" text-anchor="middle">烦人东西</text>
             </svg>
             <div class="final-star" id="finalStar" aria-hidden="true">✦</div>
-          </div>
+          </button>
 
           <div class="speech-bubble" id="speechBubble" aria-live="polite">
             检测到烦人东西，正在假装处理。
@@ -96,6 +102,13 @@
           <button class="control-button" type="button" data-action="blow">吹走一点</button>
           <button class="control-button" type="button" data-action="lighten">变轻一点</button>
           <button class="control-button" type="button" data-action="pretend">假装没事</button>
+        </div>
+
+        <div class="micro-controls" id="microControls" aria-label="小动作">
+          <button class="micro-button" type="button" data-action="breathe">深呼吸</button>
+          <button class="micro-button" type="button" data-action="fold">先打包</button>
+          <button class="micro-button" type="button" data-action="rename">改个名</button>
+          <button class="micro-button" type="button" data-action="poke">戳泡泡</button>
         </div>
       </section>
     </main>

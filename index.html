@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Little Web Pet</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="pet-card" aria-labelledby="title">
+        <div class="title-row">
+          <div>
+            <p class="kicker">little-web-pet</p>
+            <h1 id="title">一只正在营业的小狗</h1>
+          </div>
+          <div class="counter" aria-live="polite">
+            点击 <span id="clickCount">0</span>
+          </div>
+        </div>
+
+        <div class="stage" id="stage">
+          <div class="speech-bubble" id="speechBubble" aria-live="polite">
+            今天也只是普通地待机。
+          </div>
+
+          <button class="pet-wrap" id="petWrap" type="button" aria-label="点击小狗" aria-describedby="speechBubble">
+            <span class="soft-shadow" aria-hidden="true"></span>
+            <span class="dog-motion" id="dogMotion">
+              <img class="dog-image" src="assets/dog.png" alt="一只小狗桌宠">
+            </span>
+          </button>
+
+          <div class="particle-layer" id="particleLayer" aria-hidden="true"></div>
+        </div>
+
+        <div class="controls" aria-label="桌宠操作">
+          <button class="control-button" id="petButton" type="button">摸摸它</button>
+          <button class="control-button" id="workButton" type="button">让它打工</button>
+          <button class="control-button" id="phraseButton" type="button">换一句</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

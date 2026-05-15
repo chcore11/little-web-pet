@@ -202,7 +202,7 @@ h1 {
 .line-dog path,
 .line-dog circle {
   stroke: var(--ink);
-  stroke-width: 8;
+  stroke-width: 7.5;
   stroke-linecap: round;
   stroke-linejoin: round;
   fill: none;
@@ -213,8 +213,13 @@ h1 {
 }
 
 .line-dog .nose,
+.line-dog .dot,
 .line-dog .eyes-focus circle {
   fill: var(--ink);
+}
+
+.line-dog .dot {
+  stroke-width: 0;
 }
 
 .dog-float {
@@ -319,11 +324,11 @@ h1 {
   animation: dogWork 88ms ease-in-out infinite;
 }
 
-.dog-button.is-working .left-paw {
+.dog-button.is-working .left-arm {
   animation: pawWorkLeft 180ms ease-in-out infinite;
 }
 
-.dog-button.is-working .right-paw {
+.dog-button.is-working .right-arm {
   animation: pawWorkRight 180ms ease-in-out infinite;
 }
 
